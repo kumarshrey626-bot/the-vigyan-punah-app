@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigyan Punah - Admin Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-height-screen p-4 flex justify-center items-center">
+
+    <div class="w-full max-w-md bg-gray-800 rounded-2xl p-5 border border-gray-700 shadow-xl space-y-4">
+        <h1 class="text-base font-black text-amber-400 border-b border-gray-700 pb-2">🛸 MASTER CONTROL WEB DASHBOARD</h1>
+        
+        <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1">Image URL (Unsplash/Direct Link)</label>
+            <input id="imgUrl" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white">
+        </div>
+
+        <div class="grid grid-cols-1 gap-3">
+            <div>
+                <label class="block text-xs font-bold text-emerald-400 mb-1">Fact text (Hindi) - Upper Safe Zone</label>
+                <textarea id="factHi" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white h-16"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-emerald-400 mb-1">Fact text (English) - Upper Safe Zone</label>
+                <textarea id="factEn" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white h-16"></textarea>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3">
+            <div>
+                <label class="block text-xs font-bold text-orange-400 mb-1">Broadcast Update (Hindi)</label>
+                <input id="updateHi" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-orange-400 mb-1">Broadcast Update (English)</label>
+                <input id="updateEn" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white">
+            </div>
+        </div>
+
+        <button onclick="publishToFirebase()" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-900 font-black py-2.5 rounded-lg text-xs tracking-wider shadow shadow-amber-500/20 transition">
+            PUBLISH LIVE DATA
+        </button>
+    </div>
+
+    <script>
+        // --- TARIQ BHAI'S FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIdhId53mlQPm-o5JhAEn1P1uBZWE6p1A",
+            authDomain: "the-vigyan-punah-34c1a.firebaseapp.com",
+            projectId: "the-vigyan-punah-34c1a",
+            storageBucket: "the-vigyan-punah-34c1a.firebasestorage.app",
+            messagingSenderId: "268656382396",
+            appId: "1:268656382396:web:ed3cf1b648b5b26e4fdbb9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Load existing data into inputs
+        db.collection("controlRoom").doc("liveData").get().then((doc) => {
+            if(doc.exists) {
+                const data = doc.data();
+                document.getElementById('imgUrl').value = data.imgUrl || '';
+                document.getElementById('factHi').value = data.factHi || '';
+                document.getElementById('factEn').value = data.factEn || '';
+                document.getElementById('updateHi').value = data.updateHi || '';
+                document.getElementById('updateEn').value = data.updateEn || '';
+            }
+        });
+
+        function publishToFirebase() {
+            const img = document.getElementById('imgUrl').value.trim();
+            const fHi = document.getElementById('factHi').value.trim();
+            const fEn = document.getElementById('factEn').value.trim();
+            const uHi = document.getElementById('updateHi').value.trim();
+            const uEn = document.getElementById('updateEn').value.trim();
+
+            db.collection("controlRoom").doc("liveData").set({
+                imgUrl: img,
+                factHi: fHi,
+                factEn: fEn,
+                updateHi: uHi,
+                updateEn: uEn
+            })
+            .then(() => { alert("Boom! Data successfully published to all user devices globally."); })
+            .catch((error) => { alert("Error updating: " + error); });
+        }
+    </script>
+</body>
+</html>
