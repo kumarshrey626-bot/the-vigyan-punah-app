@@ -1,0 +1,192 @@
+# the-vigyan-punah-app
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vigyan Punah</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { pandalRed: '#800000', pandalOrange: '#FFA500', pandalGold: '#FFD700', cinematicDark: '#1A0D0D' } } }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #0f0f0f; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 430px; height: 92vh; background-color: #FFF9E6; border-radius: 35px; border: 10px solid #1A0D0D; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .upper-safe-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 15px 30px 15px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
+            z-index: 20;
+        }
+        .safe-text { color: #FFD700; font-size: 14px; font-weight: 900; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,1); line-height: 1.4; }
+        .theme-sepia { background-color: #f4ecd8; color: #5b4636; }
+    </style>
+</head>
+<body class="select-none">
+
+    <div class="app-container">
+        
+        <header class="bg-pandalRed text-pandalGold p-3.5 flex justify-between items-center border-b-2 border-pandalGold z-40 shrink-0 shadow-lg">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-atom text-pandalOrange animate-spin" style="animation-duration: 8s;"></i>
+                <span id="appTitle" class="text-sm font-black tracking-widest">THE VIGYAN PUNAH</span>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto pb-20 no-scrollbar relative bg-gray-100">
+            
+            <div id="panelHome" class="space-y-0">
+                <section class="relative w-full h-72 bg-cinematicDark overflow-hidden border-b-4 border-pandalOrange shadow-md">
+                    <img id="displayImg" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80" class="absolute inset-0 w-full h-full object-cover opacity-70">
+                    <div class="upper-safe-zone">
+                        <p id="displayText" class="safe-text italic">Loading fresh cinematic fact from Firebase...</p>
+                    </div>
+                </section>
+
+                <div class="p-4">
+                    <section class="bg-white border-l-4 border-pandalRed rounded-r-xl p-3 shadow-sm mb-4">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fab fa-youtube text-red-600"></i>
+                            <span id="updateLabel" class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Latest Update</span>
+                        </div>
+                        <p id="broadcastText" class="text-xs font-semibold text-gray-800">Loading latest broadcast update...</p>
+                    </section>
+                </div>
+            </div>
+
+            <div id="panelExplore" class="hidden p-4 space-y-4">
+                <h2 id="libraryTitle" class="text-pandalRed font-bold text-sm"><i class="fas fa-book-open"></i> Prachin Library</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div onclick="alert('eBook Reading Active!')" class="bg-white border border-pandalGold p-3 rounded-xl shadow-sm text-center cursor-pointer">
+                        <span class="text-2xl">ॐ</span>
+                        <p class="text-[11px] font-bold mt-1">Surya Siddhanta</p>
+                    </div>
+                    <div onclick="alert('Vimana Architecture Active!')" class="bg-white border border-pandalGold p-3 rounded-xl shadow-sm text-center cursor-pointer">
+                        <span class="text-2xl">✈️</span>
+                        <p class="text-[11px] font-bold mt-1">Vimana Shastra</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panelSettings" class="hidden p-4 space-y-4">
+                <h2 id="settingsTitle" class="text-gray-800 font-bold text-sm"><i class="fas fa-sliders-h"></i> App Settings</h2>
+                <div class="bg-white rounded-xl p-4 shadow-sm border space-y-4">
+                    <div>
+                        <label id="langLabel" class="block text-xs font-bold text-gray-600 mb-2">CHOOSE LANGUAGE / भाषा चुनें</label>
+                        <select id="langSelect" onchange="changeLanguage()" class="w-full bg-gray-50 border rounded-lg p-2 text-xs font-bold focus:outline-none">
+                            <option value="hi">हिन्दी (Hindi)</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="text-[10px] text-gray-400 text-center pt-2 border-t">Version 3.0 PRO (Professional Edition)</div>
+                </div>
+            </div>
+
+        </div>
+
+        <nav class="absolute bottom-0 w-full bg-white border-t border-gray-200 p-2.5 flex justify-around items-center z-30 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+            <button id="navHomeBtn" onclick="switchTab('home')" class="text-pandalRed flex flex-col items-center space-y-1 w-1/3">
+                <i class="fas fa-home text-lg"></i><span class="text-[9px] font-black">HOME</span>
+            </button>
+            <button id="navExploreBtn" onclick="switchTab('explore')" class="text-gray-400 flex flex-col items-center space-y-1 w-1/3">
+                <i class="fas fa-search text-lg"></i><span class="text-[9px] font-black">EXPLORE</span>
+            </button>
+            <button id="navSettingsBtn" onclick="switchTab('settings')" class="text-gray-400 flex flex-col items-center space-y-1 w-1/3">
+                <i class="fas fa-cog text-lg"></i><span class="text-[9px] font-black">SETTINGS</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // --- TARIQ BHAI'S FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIdhId53mlQPm-o5JhAEn1P1uBZWE6p1A",
+            authDomain: "the-vigyan-punah-34c1a.firebaseapp.com",
+            projectId: "the-vigyan-punah-34c1a",
+            storageBucket: "the-vigyan-punah-34c1a.firebasestorage.app",
+            messagingSenderId: "268656382396",
+            appId: "1:268656382396:web:ed3cf1b648b5b26e4fdbb9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentLang = 'hi';
+        let globalData = { factHi: "", factEn: "", updateHi: "", updateEn: "", imgUrl: "" };
+
+        // Realtime Data Sync from Firebase
+        db.collection("controlRoom").doc("liveData").onSnapshot((doc) => {
+            if (doc.exists) {
+                globalData = doc.data();
+                renderScreenData();
+            }
+        });
+
+        function renderScreenData() {
+            if(currentLang === 'hi') {
+                document.getElementById('displayText').innerText = globalData.factHi || "डेटा उपलब्ध नहीं है।";
+                document.getElementById('broadcastText').innerText = globalData.updateHi || "कोई नया अपडेट नहीं है।";
+            } else {
+                document.getElementById('displayText').innerText = globalData.factEn || "No data available.";
+                document.getElementById('broadcastText').innerText = globalData.updateEn || "No new updates.";
+            }
+            if(globalData.imgUrl) {
+                document.getElementById('displayImg').src = globalData.imgUrl;
+            }
+        }
+
+        // Language Engine
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            if(currentLang === 'hi') {
+                document.getElementById('appTitle').innerText = "THE VIGYAN PUNAH";
+                document.getElementById('updateLabel').innerText = "नवीनतम अपडेट";
+                document.getElementById('libraryTitle').innerHTML = '<i class="fas fa-book-open"></i> प्राचीन लाइब्रेरी';
+                document.getElementById('settingsTitle').innerHTML = '<i class="fas fa-sliders-h"></i> ऐप सेटिंग्स';
+            } else {
+                document.getElementById('appTitle').innerText = "THE VIGYAN PUNAH";
+                document.getElementById('updateLabel').innerText = "LATEST UPDATE";
+                document.getElementById('libraryTitle').innerHTML = '<i class="fas fa-book-open"></i> Ancient Library';
+                document.getElementById('settingsTitle').innerHTML = '<i class="fas fa-sliders-h"></i> App Settings';
+            }
+            renderScreenData();
+        }
+
+        // Navigation Router
+        function switchTab(tab) {
+            document.getElementById('panelHome').classList.add('hidden');
+            document.getElementById('panelExplore').classList.add('hidden');
+            document.getElementById('panelSettings').classList.add('hidden');
+            
+            document.getElementById('navHomeBtn').className = "text-gray-400 flex flex-col items-center space-y-1 w-1/3";
+            document.getElementById('navExploreBtn').className = "text-gray-400 flex flex-col items-center space-y-1 w-1/3";
+            document.getElementById('navSettingsBtn').className = "text-gray-400 flex flex-col items-center space-y-1 w-1/3";
+
+            if(tab === 'home') {
+                document.getElementById('panelHome').classList.remove('hidden');
+                document.getElementById('navHomeBtn').className = "text-pandalRed flex flex-col items-center space-y-1 w-1/3";
+            } else if(tab === 'explore') {
+                document.getElementById('panelExplore').classList.remove('hidden');
+                document.getElementById('navExploreBtn').className = "text-pandalRed flex flex-col items-center space-y-1 w-1/3";
+            } else if(tab === 'settings') {
+                document.getElementById('panelSettings').classList.remove('hidden');
+                document.getElementById('navSettingsBtn').className = "text-pandalRed flex flex-col items-center space-y-1 w-1/3";
+            }
+        }
+    </script>
+</body>
+  </html>
